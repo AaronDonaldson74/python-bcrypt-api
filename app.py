@@ -49,6 +49,32 @@ def register():
     db.session.commit()
     return jsonify('User Created')
 
+
+# This route just for testing purposes.
+@app.route('/api/users', methods=["GET"])
+def get_users():
+    all_users = User.query.all()
+    result = users_schema.dump(all_users)
+    return jsonify(result)
+
+# In the future, you'll want to add jwt tokens, , sessions or cookies, etc. But this one will not include those things.
+@app.route('/api/login', methods=["POST"])
+def login():
+    post_data = request.get_json()
+    db_user = User.query.filter_by(username=post_data.get('username')).first()
+    
+    if db_user is None:
+        return jsonify('Username Not Found')
+
+    password = post_data.get('password')
+    db_user_hashed_password = db_user.password
+    valid_password = flask_bcrypt.check_password_hash(db_user_hashed_password, password)
+
+    if valid_password:
+        return jsonify('User Verified')
+    
+    return jsonify('Password is not correct')
+
 if __name__ == "__main__":
     app.run(debug=True)
     
